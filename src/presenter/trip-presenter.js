@@ -3,7 +3,7 @@ import EventView from '../view/event-view.js';
 import FilterView from '../view/filter-view.js';
 import EventListView from '../view/event-list-view.js';
 import EventEditView from '../view/event-edit-view.js';
-import EventCreateView from '../view/event-create-view.js';
+// import EventCreateView from '../view/event-create-view.js';
 import { render } from '../render.js';
 
 export default class TripPresenter {
@@ -27,21 +27,21 @@ export default class TripPresenter {
     const editDestination = destinations.find((dest) => dest.id === editPoint.destination);
     const editPointOffers = offers.find((item) => item.type === editPoint.type);
     const selectedEditOffers = editPointOffers.offers.filter((offer) => editPoint.offers.includes(offer.id));
-    const createPoint = {
-      type: 'flight',
-      destination: destinations[0].id,
-      dateFrom: new Date().toISOString(),
-      dateTo: new Date().toISOString(),
-      basePrice: 0,
-      offers: [],
-      isFavorite: false,
-    };
+    // const createPoint = {
+    //   type: 'flight',
+    //   destination: destinations[0].id,
+    //   dateFrom: new Date().toISOString(),
+    //   dateTo: new Date().toISOString(),
+    //   basePrice: 0,
+    //   offers: [],
+    //   isFavorite: false,
+    // };
 
-    const createDestination = destinations.find((dest) => dest.id === createPoint.destination);
-    const createOffers = [];
+    // const createDestination = destinations.find((dest) => dest.id === createPoint.destination);
+    // const createOffers = [];
 
     render(new EventEditView(editPoint, editDestination, selectedEditOffers, destinations), tripEventsListElement);
-    render(new EventCreateView(createPoint, createDestination, createOffers, destinations), tripEventsListElement);
+    // render(new EventCreateView(createPoint, createDestination, createOffers, destinations), tripEventsListElement);
 
     // переделай на forEach
     for (let i = 0; i < points.length; i++) {
