@@ -1,4 +1,4 @@
-import { getDescription, getPictures } from './util.js';
+import {getDescription, getPictures} from '../utils.js';
 
 const destinations = [
   {
