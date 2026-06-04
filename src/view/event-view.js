@@ -1,23 +1,35 @@
 import {humanizeEventDate, humanizeEventTime, getEventDuration} from '../utils/point.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
-export default class EventView {
-  constructor(point, destination, offers) {
-    this.point = point;
-    this.destination = destination;
-    this.offers = offers;
+export default class EventView extends AbstractView {
+  #point = null;
+  #destination = null;
+  #offers = [];
+  #handleRollupClick = null;
+  #handleRollupButtonClick = null;
+
+  constructor(point, destination, offers, onRollupButtonClick) {
+    super();
+
+    this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#handleRollupButtonClick = onRollupButtonClick;
+
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupButtonClickHandler);
   }
 
-  getTemplate() {
-    const {type, basePrice, isFavorite, dateFrom, dateTo} = this.point;
-    const {name} = this.destination;
-    const offersTemplate = this.offers.map((offer) => `
+  get template() {
+    const {type, basePrice, isFavorite, dateFrom, dateTo} = this.#point;
+    const {name} = this.#destination;
+
+    const offersTemplate = this.#offers.map((offer) => `
       <li class="event__offer">
         <span class="event__offer-title">${offer.title}</span>
         &plus;&euro;&nbsp;
         <span class="event__offer-price">${offer.price}</span>
       </li>
     `).join('');
-
     return `
       <li class="trip-events__item">
         <div class="event">
@@ -55,10 +67,8 @@ export default class EventView {
     `;
   }
 
-  getElement() {
-    const element = document.createElement('div');
-    element.innerHTML = this.getTemplate();
-
-    return element.firstElementChild;
-  }
+  #rollupButtonClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleRollupButtonClick();
+  };
 }

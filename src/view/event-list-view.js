@@ -1,12 +1,7 @@
-export default class EventListView {
-  getTemplate() {
+import AbstractView from '../framework/view/abstract-view.js';
+
+export default class EventListView extends AbstractView {
+  get template() {
     return '<ul class="trip-events__list"></ul>';
-  }
-
-  getElement() {
-    const element = document.createElement('div');
-    element.innerHTML = this.getTemplate();
-
-    return element.firstElementChild;
   }
 }

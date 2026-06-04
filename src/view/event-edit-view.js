@@ -1,18 +1,37 @@
-import { humanizeEditEventDate } from '../utils/point.js';
+import AbstractView from '../framework/view/abstract-view.js';
+import {humanizeEditEventDate} from '../utils/point.js';
 
-export default class EventEditView {
-  constructor(point, destination, offers, destinations) {
-    this.point = point;
-    this.offers = offers;
-    this.destination = destination;
-    this.destinations = destinations;
+export default class EventEditView extends AbstractView {
+  #point = null;
+  #destination = null;
+  #offers = [];
+  #destinations = [];
+  #handleFormSubmit = null;
+  #handleRollupButtonClick = null;
+
+  constructor(point, destination, offers, destinations, onFormSubmit, onRollupButtonClick) {
+    super();
+
+    this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#destinations = destinations;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleRollupButtonClick = onRollupButtonClick;
+
+    this.element
+      .querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupButtonClickHandler);
   }
 
-  getTemplate() {
-    const {type, basePrice, dateFrom, dateTo} = this.point;
-    const {name, description, pictures} = this.destination;
+  get template() {
+    const {type, basePrice, dateFrom, dateTo} = this.#point;
+    const {name, description, pictures} = this.#destination;
 
-    const offersTemplate = this.offers.map((offer) => `
+    const offersTemplate = this.#offers.map((offer) => `
       <div class="event__offer-selector">
         <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" checked>
         <label class="event__offer-label" for="event-offer-${offer.id}-1">
@@ -30,7 +49,7 @@ export default class EventEditView {
     const dateFromValue = humanizeEditEventDate(dateFrom);
     const dateToValue = humanizeEditEventDate(dateTo);
 
-    const destinationOptionsTemplate = this.destinations.map((destination) => `
+    const destinationOptionsTemplate = this.#destinations.map((destination) => `
       <option value="${destination.name}"></option>
     `).join('');
 
@@ -153,10 +172,13 @@ export default class EventEditView {
     `;
   }
 
-  getElement() {
-    const element = document.createElement('div');
-    element.innerHTML = this.getTemplate();
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+  };
 
-    return element.firstElementChild;
-  }
+  #rollupButtonClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleRollupButtonClick();
+  };
 }
