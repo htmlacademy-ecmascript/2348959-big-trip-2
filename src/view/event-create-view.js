@@ -1,14 +1,17 @@
+import AbstractView from '../framework/view/abstract-view.js';
 import { humanizeEditEventDate } from '../utils/point.js';
 
-export default class EventCreateView {
+export default class EventCreateView extends AbstractView {
   constructor(point, destination, offers, destinations) {
+    super();
+
     this.point = point;
     this.offers = offers;
     this.destination = destination;
     this.destinations = destinations;
   }
 
-  getTemplate() {
+  get template() {
     const {type, dateFrom, dateTo, basePrice} = this.point;
     const {name = '', description = '', pictures = []} = this.destination ?? {};
 
@@ -158,12 +161,5 @@ export default class EventCreateView {
         </form>
       </li>
     `;
-  }
-
-  getElement() {
-    const element = document.createElement('div');
-    element.innerHTML = this.getTemplate();
-
-    return element.firstElementChild;
   }
 }
