@@ -3,8 +3,7 @@ import EventView from '../view/event-view.js';
 import FilterView from '../view/filter-view.js';
 import EventListView from '../view/event-list-view.js';
 import EventEditView from '../view/event-edit-view.js';
-// import EventCreateView from '../view/event-create-view.js';
-import { render } from '../render.js';
+import {render, replace} from '../framework/render.js';
 
 export default class TripPresenter {
   constructor({tripModel}) {
@@ -23,34 +22,53 @@ export default class TripPresenter {
     render(new EventListView(), tripEventsElement);
 
     const tripEventsListElement = tripEventsElement.querySelector('.trip-events__list');
-    const editPoint = points[0];
-    const editDestination = destinations.find((dest) => dest.id === editPoint.destination);
-    const editPointOffers = offers.find((item) => item.type === editPoint.type);
-    const selectedEditOffers = editPointOffers.offers.filter((offer) => editPoint.offers.includes(offer.id));
-    // const createPoint = {
-    //   type: 'flight',
-    //   destination: destinations[0].id,
-    //   dateFrom: new Date().toISOString(),
-    //   dateTo: new Date().toISOString(),
-    //   basePrice: 0,
-    //   offers: [],
-    //   isFavorite: false,
-    // };
 
-    // const createDestination = destinations.find((dest) => dest.id === createPoint.destination);
-    // const createOffers = [];
+    points.forEach((point) => {
+      this.#renderPoint(point, tripEventsListElement, destinations, offers);
+    });
+  }
 
-    render(new EventEditView(editPoint, editDestination, selectedEditOffers, destinations), tripEventsListElement);
-    // render(new EventCreateView(createPoint, createDestination, createOffers, destinations), tripEventsListElement);
+  #renderPoint(point, tripEventsListElement, destinations, offers) {
+    const destination = destinations.find((dest) => dest.id === point.destination);
+    const pointOffers = offers.find((item) => item.type === point.type);
+    const selectedOffers = pointOffers.offers.filter((offer) => point.offers.includes(offer.id));
 
-    // переделай на forEach
-    for (let i = 0; i < points.length; i++) {
-      const point = points[i];
-      const destination = destinations.find((dest) => dest.id === point.destination);
-      const pointOffers = offers.find((item) => item.type === point.type);
-      const selectedOffers = pointOffers.offers.filter((offer) => point.offers.includes(offer.id));
+    let eventComponent = null;
+    let eventEditComponent = null;
 
-      render(new EventView(point, destination, selectedOffers), tripEventsListElement);
+    const replaceEventToForm = () => {
+      replace(eventEditComponent, eventComponent);
+      document.addEventListener('keydown', onEscKeyDown);
+    };
+
+    const replaceEventToEvent = () => {
+      replace(eventComponent, eventEditComponent);
+      document.removeEventListener('keydown', onEscKeyDown);
+    };
+
+    eventComponent = new EventView(
+      point,
+      destination,
+      selectedOffers,
+      replaceEventToForm
+    );
+
+    eventEditComponent = new EventEditView(
+      point,
+      destination,
+      selectedOffers,
+      destinations,
+      replaceEventToEvent,
+      replaceEventToEvent
+    );
+
+    function onEscKeyDown(evt) {
+      if (evt.key === 'Escape') {
+        evt.preventDefault();
+        replaceEventToEvent();
+      }
     }
+
+    render(eventComponent, tripEventsListElement);
   }
 }
