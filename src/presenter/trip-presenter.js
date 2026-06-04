@@ -1,8 +1,11 @@
 import SortView from '../view/sort-view.js';
 import EventView from '../view/event-view.js';
 import FilterView from '../view/filter-view.js';
+import NoPointView from '../view/no-point-view.js';
 import EventListView from '../view/event-list-view.js';
 import EventEditView from '../view/event-edit-view.js';
+import {FilterType} from '../const.js';
+import {generateFilter} from '../mock/filter.js';
 import {render, replace} from '../framework/render.js';
 
 export default class TripPresenter {
@@ -16,8 +19,15 @@ export default class TripPresenter {
     const destinations = this.tripModel.destinations;
     const points = this.tripModel.points;
     const offers = this.tripModel.offers;
+    const filters = generateFilter(points);
 
-    render(new FilterView(), tripControlsFiltersElement);
+    render(new FilterView(filters), tripControlsFiltersElement);
+
+    if (points.length === 0) {
+      render(new NoPointView(FilterType.EVERYTHING), tripEventsElement);
+      return;
+    }
+
     render(new SortView(), tripEventsElement);
     render(new EventListView(), tripEventsElement);
 
