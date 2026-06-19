@@ -1,14 +1,18 @@
 import SortView from '../view/sort-view.js';
-import EventView from '../view/event-view.js';
 import FilterView from '../view/filter-view.js';
+import PointPresenter from './point-presenter.js';
 import NoPointView from '../view/no-point-view.js';
 import EventListView from '../view/event-list-view.js';
-import EventEditView from '../view/event-edit-view.js';
 import {FilterType} from '../const.js';
+import {render} from '../framework/render.js';
 import {generateFilter} from '../mock/filter.js';
-import {render, replace} from '../framework/render.js';
 
 export default class TripPresenter {
+  #points = [];
+  #destinations = [];
+  #offers = [];
+  #pointPresenters = [];
+
   constructor({tripModel}) {
     this.tripModel = tripModel;
   }
@@ -16,14 +20,16 @@ export default class TripPresenter {
   init() {
     const tripControlsFiltersElement = document.querySelector('.trip-controls__filters');
     const tripEventsElement = document.querySelector('.trip-events');
-    const destinations = this.tripModel.destinations;
-    const points = this.tripModel.points;
-    const offers = this.tripModel.offers;
-    const filters = generateFilter(points);
+
+    this.#destinations = this.tripModel.destinations;
+    this.#points = this.tripModel.points;
+    this.#offers = this.tripModel.offers;
+
+    const filters = generateFilter(this.#points);
 
     render(new FilterView(filters), tripControlsFiltersElement);
 
-    if (points.length === 0) {
+    if (this.#points.length === 0) {
       render(new NoPointView(FilterType.EVERYTHING), tripEventsElement);
       return;
     }
@@ -33,52 +39,41 @@ export default class TripPresenter {
 
     const tripEventsListElement = tripEventsElement.querySelector('.trip-events__list');
 
-    points.forEach((point) => {
-      this.#renderPoint(point, tripEventsListElement, destinations, offers);
+    this.#points.forEach((point) => {
+      this.#renderPoint(point, tripEventsListElement);
     });
   }
 
-  #renderPoint(point, tripEventsListElement, destinations, offers) {
-    const destination = destinations.find((dest) => dest.id === point.destination);
-    const pointOffers = offers.find((item) => item.type === point.type);
-    const selectedOffers = pointOffers.offers.filter((offer) => point.offers.includes(offer.id));
+  #renderPoint(point, tripEventsListElement) {
+    const pointPresenter = new PointPresenter({
+      tripEventsListElement,
+      destinations: this.#destinations,
+      offers: this.#offers,
+      onDataChange: this.#handlePointChange,
+      onModeChange: this.#handleModeChange,
+    });
 
-    let eventComponent = null;
-    let eventEditComponent = null;
+    pointPresenter.init(point);
+    this.#pointPresenters.push(pointPresenter);
+  }
 
-    const replaceEventToForm = () => {
-      replace(eventEditComponent, eventComponent);
-      document.addEventListener('keydown', onEscKeyDown);
-    };
+  #handlePointChange = (updatedPoint) => {
+    const pointIndex = this.#points.findIndex((point) => point.id === updatedPoint.id);
 
-    const replaceEventToEvent = () => {
-      replace(eventComponent, eventEditComponent);
-      document.removeEventListener('keydown', onEscKeyDown);
-    };
-
-    eventComponent = new EventView(
-      point,
-      destination,
-      selectedOffers,
-      replaceEventToForm
-    );
-
-    eventEditComponent = new EventEditView(
-      point,
-      destination,
-      selectedOffers,
-      destinations,
-      replaceEventToEvent,
-      replaceEventToEvent
-    );
-
-    function onEscKeyDown(evt) {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        replaceEventToEvent();
-      }
+    if (pointIndex === -1) {
+      return;
     }
 
-    render(eventComponent, tripEventsListElement);
-  }
+    this.#points = [
+      ...this.#points.slice(0, pointIndex),
+      updatedPoint,
+      ...this.#points.slice(pointIndex + 1),
+    ];
+
+    this.#pointPresenters[pointIndex].init(updatedPoint);
+  };
+
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
 }
