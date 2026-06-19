@@ -1,6 +1,6 @@
 import EventView from '../view/event-view.js';
 import EventEditView from '../view/event-edit-view.js';
-import {render, replace} from '../framework/render.js';
+import {render, replace, remove} from '../framework/render.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -17,6 +17,12 @@ export default class PointPresenter {
   #handleDataChange = null;
   #handleModeChange = null;
   #mode = Mode.DEFAULT;
+
+  destroy() {
+    remove(this.#eventComponent);
+    remove(this.#eventEditComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+  }
 
   constructor({tripEventsListElement, destinations, offers, onDataChange, onModeChange}) {
     this.#tripEventsListElement = tripEventsListElement;
