@@ -19,6 +19,12 @@ const FilterType = {
   PAST: 'past',
 };
 
+const SortType = {
+  DAY: 'day',
+  TIME: 'time',
+  PRICE: 'price',
+};
+
 const NoPointTextType = {
   [FilterType.EVERYTHING]: 'Click New Event to create your first point',
   [FilterType.FUTURE]: 'There are no future events now',
@@ -26,4 +32,4 @@ const NoPointTextType = {
   [FilterType.PAST]: 'There are no past events now',
 };
 
-export { DESCRIPTION_CITIES, FilterType, NoPointTextType };
+export {DESCRIPTION_CITIES, FilterType, NoPointTextType, SortType};
