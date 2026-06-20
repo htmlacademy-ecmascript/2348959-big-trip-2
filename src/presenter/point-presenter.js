@@ -52,8 +52,7 @@ export default class PointPresenter {
 
     this.#eventEditComponent = new EventEditView(
       this.#point,
-      destination,
-      selectedOffers,
+      this.#offers,
       this.#destinations,
       this.#handleFormSubmit,
       this.#handleRollupButtonClick
@@ -108,7 +107,8 @@ export default class PointPresenter {
     this.#replaceFormToEvent();
   };
 
-  #handleFormSubmit = () => {
+  #handleFormSubmit = (updatedPoint) => {
+    this.#handleDataChange(updatedPoint);
     this.#replaceFormToEvent();
   };
 

@@ -1,39 +1,43 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import {humanizeEditEventDate} from '../utils/point.js';
 
-export default class EventEditView extends AbstractView {
-  #point = null;
-  #destination = null;
+export default class EventEditView extends AbstractStatefulView {
   #offers = [];
   #destinations = [];
   #handleFormSubmit = null;
   #handleRollupButtonClick = null;
 
-  constructor(point, destination, offers, destinations, onFormSubmit, onRollupButtonClick) {
+  static parsePointToState(point) {
+    return {...point};
+  }
+
+  static parseStateToPoint(state) {
+    return {...state};
+  }
+
+  constructor(point, offers, destinations, onFormSubmit, onRollupButtonClick) {
     super();
 
-    this.#point = point;
-    this.#destination = destination;
     this.#offers = offers;
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupButtonClick = onRollupButtonClick;
 
-    this.element
-      .querySelector('form')
-      .addEventListener('submit', this.#formSubmitHandler);
-    this.element
-      .querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#rollupButtonClickHandler);
+    this._setState(EventEditView.parsePointToState(point));
+
+    this._restoreHandlers();
   }
 
   get template() {
-    const {type, basePrice, dateFrom, dateTo} = this.#point;
-    const {name, description, pictures} = this.#destination;
+    const {type, basePrice, dateFrom, dateTo, destination, offers} = this._state;
+    const currentDestination = this.#destinations.find((dest) => dest.id === destination) ?? this.#destinations[0];
+    const {name, description, pictures} = currentDestination;
 
-    const offersTemplate = this.#offers.map((offer) => `
+    const currentTypeOffers = this.#offers.find((item) => item.type === type)?.offers ?? [];
+
+    const offersTemplate = currentTypeOffers.map((offer) => `
       <div class="event__offer-selector">
-        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" checked>
+        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" ${offers.includes(offer.id) ? 'checked' : ''}>
         <label class="event__offer-label" for="event-offer-${offer.id}-1">
           <span class="event__offer-title">${offer.title}</span>
           &plus;&euro;&nbsp;
@@ -49,9 +53,19 @@ export default class EventEditView extends AbstractView {
     const dateFromValue = humanizeEditEventDate(dateFrom);
     const dateToValue = humanizeEditEventDate(dateTo);
 
-    const destinationOptionsTemplate = this.#destinations.map((destination) => `
-      <option value="${destination.name}"></option>
+    const destinationOptionsTemplate = this.#destinations.map((dest) => `
+      <option value="${dest.name}"></option>
     `).join('');
+
+    const offersSectionTemplate = currentTypeOffers.length > 0 ? `
+      <section class="event__section  event__section--offers">
+        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+
+        <div class="event__available-offers">
+          ${offersTemplate}
+        </div>
+      </section>
+    ` : '';
 
     return `
       <li class="trip-events__item">
@@ -149,14 +163,7 @@ export default class EventEditView extends AbstractView {
             </button>
           </header>
           <section class="event__details">
-            <section class="event__section  event__section--offers">
-              <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-
-              <div class="event__available-offers">
-                ${offersTemplate}
-              </div>
-            </section>
-
+            ${offersSectionTemplate}
             <section class="event__section  event__section--destination">
               <h3 class="event__section-title  event__section-title--destination">Destination</h3>
               <p class="event__destination-description">${description}</p>
@@ -172,13 +179,50 @@ export default class EventEditView extends AbstractView {
     `;
   }
 
+  _restoreHandlers() {
+    this.element
+      .querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupButtonClickHandler);
+
+    this.element
+      .querySelector('.event__type-group')
+      .addEventListener('change', this.#eventTypeChangeHandler);
+
+    this.element
+      .querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+  }
+
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit();
+    this.#handleFormSubmit(EventEditView.parseStateToPoint(this._state));
   };
 
   #rollupButtonClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleRollupButtonClick();
+  };
+
+  #eventTypeChangeHandler = (evt) => {
+    this.updateElement({
+      type: evt.target.value,
+      offers: [],
+    });
+  };
+
+  #destinationChangeHandler = (evt) => {
+    const selectedDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
+
+    if (!selectedDestination) {
+      return;
+    }
+
+    this.updateElement({
+      destination: selectedDestination.id,
+    });
   };
 }
