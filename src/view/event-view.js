@@ -49,7 +49,7 @@ export default class EventView extends AbstractView {
           <div class="event__schedule">
             <p class="event__time">
               <time class="event__start-time" datetime="${dateFrom}">${humanizeEventTime(dateFrom)}</time>
-              &mdash;
+                &mdash;
               <time class="event__end-time" datetime="${dateTo}">${humanizeEventTime(dateTo)}</time>
             </p>
             <p class="event__duration">${getEventDuration(dateFrom, dateTo)}</p>
