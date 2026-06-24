@@ -1,9 +1,13 @@
-import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 import {humanizeEditEventDate} from '../utils/point.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
 export default class EventEditView extends AbstractStatefulView {
   #offers = [];
   #destinations = [];
+  #datepickerTo = null;
+  #datepickerFrom = null;
   #handleFormSubmit = null;
   #handleRollupButtonClick = null;
 
@@ -13,6 +17,70 @@ export default class EventEditView extends AbstractStatefulView {
 
   static parseStateToPoint(state) {
     return {...state};
+  }
+
+  #setDatepickers() {
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('[name="event-start-time"]'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        // eslint-disable-next-line camelcase
+        time_24hr: true,
+        onChange: this.#dateFromChangeHandler,
+      }
+    );
+
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('[name="event-end-time"]'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        // eslint-disable-next-line camelcase
+        time_24hr: true,
+        onChange: this.#dateToChangeHandler,
+      }
+    );
+  }
+
+  #dateFromChangeHandler = ([userDate]) => {
+    if (!userDate) {
+      return;
+    }
+
+    this._setState({
+      dateFrom: userDate.toISOString(),
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    if (!userDate) {
+      return;
+    }
+
+    this._setState({
+      dateTo: userDate.toISOString(),
+    });
+  };
+
+  #destroyDatepickers() {
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  }
+
+  removeElement() {
+    this.#destroyDatepickers();
+
+    super.removeElement();
   }
 
   constructor(point, offers, destinations, onFormSubmit, onRollupButtonClick) {
@@ -50,8 +118,8 @@ export default class EventEditView extends AbstractStatefulView {
       <img class="event__photo" src="${picture.src}" alt="${picture.description}">
     `).join('');
 
-    const dateFromValue = humanizeEditEventDate(dateFrom);
     const dateToValue = humanizeEditEventDate(dateTo);
+    const dateFromValue = humanizeEditEventDate(dateFrom);
 
     const destinationOptionsTemplate = this.#destinations.map((dest) => `
       <option value="${dest.name}"></option>
@@ -195,6 +263,8 @@ export default class EventEditView extends AbstractStatefulView {
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    this.#setDatepickers();
   }
 
   #formSubmitHandler = (evt) => {
