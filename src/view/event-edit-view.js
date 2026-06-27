@@ -3,6 +3,12 @@ import 'flatpickr/dist/flatpickr.min.css';
 import {humanizeEditEventDate} from '../utils/point.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
+const sanitizePriceValue = (value) => {
+  const digitsOnly = value.replace(/\D/g, '');
+
+  return digitsOnly.replace(/^0+(?=\d)/, '');
+};
+
 export default class EventEditView extends AbstractStatefulView {
   #offers = [];
   #destinations = [];
@@ -10,6 +16,7 @@ export default class EventEditView extends AbstractStatefulView {
   #datepickerFrom = null;
   #handleFormSubmit = null;
   #handleRollupButtonClick = null;
+  #handleDeleteClick = null;
 
   static parsePointToState(point) {
     return {...point};
@@ -83,13 +90,14 @@ export default class EventEditView extends AbstractStatefulView {
     super.removeElement();
   }
 
-  constructor(point, offers, destinations, onFormSubmit, onRollupButtonClick) {
+  constructor(point, offers, destinations, onFormSubmit, onRollupButtonClick, onDeleteClick) {
     super();
 
     this.#offers = offers;
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupButtonClick = onRollupButtonClick;
+    this.#handleDeleteClick = onDeleteClick;
 
     this._setState(EventEditView.parsePointToState(point));
 
@@ -264,6 +272,14 @@ export default class EventEditView extends AbstractStatefulView {
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
 
+    this.element
+      .querySelector('.event__input--price')
+      .addEventListener('input', this.#priceInputHandler);
+
+    this.element
+      .querySelector('.event__reset-btn')
+      .addEventListener('click', this.#deleteClickHandler);
+
     this.#setDatepickers();
   }
 
@@ -275,6 +291,21 @@ export default class EventEditView extends AbstractStatefulView {
   #rollupButtonClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleRollupButtonClick();
+  };
+
+  #deleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick(EventEditView.parseStateToPoint(this._state));
+  };
+
+  #priceInputHandler = (evt) => {
+    const sanitizedValue = sanitizePriceValue(evt.target.value);
+
+    evt.target.value = sanitizedValue;
+
+    this._setState({
+      basePrice: sanitizedValue === '' ? '' : Number(sanitizedValue),
+    });
   };
 
   #eventTypeChangeHandler = (evt) => {
