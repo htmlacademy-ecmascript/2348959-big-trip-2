@@ -113,8 +113,8 @@ export default class PointPresenter {
     this.#replaceFormToEvent();
   };
 
-  #handleFormSubmit = (updatedPoint) => {
-    this.#handleDataChange(
+  #handleFormSubmit = async (updatedPoint) => {
+    await this.#handleDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.MINOR,
       updatedPoint,
@@ -123,8 +123,8 @@ export default class PointPresenter {
     this.#replaceFormToEvent();
   };
 
-  #handleFavoriteClick = () => {
-    this.#handleDataChange(
+  #handleFavoriteClick = async () => {
+    await this.#handleDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.PATCH,
       {

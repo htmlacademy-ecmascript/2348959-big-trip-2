@@ -1,24 +1,27 @@
+import {SortType} from '../const.js';
 import {filter} from '../utils/filter.js';
 import SortView from '../view/sort-view.js';
 import PointPresenter from './point-presenter.js';
+import LoadingView from '../view/loading-view.js';
 import NoPointView from '../view/no-point-view.js';
-import EventListView from '../view/event-list-view.js';
-import {render, remove} from '../framework/render.js';
-import {SortType} from '../const.js';
 import {UserAction, UpdateType} from '../const.js';
+import {render, remove} from '../framework/render.js';
+import EventListView from '../view/event-list-view.js';
 import {sortPointDay, sortPointTime, sortPointPrice} from '../utils/sort.js';
 
 export default class TripPresenter {
   #points = [];
   #offers = [];
+  #isLoading = true;
   #destinations = [];
   #sourcedPoints = [];
   #pointPresenters = [];
   #currentSortType = SortType.DAY;
   #sortComponent = null;
   #noPointComponent = null;
-  #eventListComponent = null;
+  #loadingComponent = null;
   #tripEventsElement = null;
+  #eventListComponent = null;
   #tripEventsListElement = null;
 
   #clearPointList() {
@@ -32,10 +35,12 @@ export default class TripPresenter {
     remove(this.#sortComponent);
     remove(this.#eventListComponent);
     remove(this.#noPointComponent);
+    remove(this.#loadingComponent);
 
     this.#sortComponent = null;
     this.#eventListComponent = null;
     this.#noPointComponent = null;
+    this.#loadingComponent = null;
   }
 
   #getPoints() {
@@ -60,10 +65,20 @@ export default class TripPresenter {
         this.#clearBoard();
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        this.#clearBoard();
+        this.#renderBoard();
+        break;
     }
   };
 
   #renderBoard() {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+
     this.#destinations = this.tripModel.destinations;
     this.#points = this.#getPoints();
     this.#sourcedPoints = [...this.#points];
@@ -78,6 +93,11 @@ export default class TripPresenter {
     this.#renderSort();
     this.#renderEventList();
     this.#renderPointList();
+  }
+
+  #renderLoading() {
+    this.#loadingComponent = new LoadingView();
+    render(this.#loadingComponent, this.#tripEventsElement);
   }
 
   #renderNoPoint() {
@@ -133,10 +153,10 @@ export default class TripPresenter {
     });
   }
 
-  #handlePointChange = (userAction, updateType, updatedPoint) => {
+  #handlePointChange = async (userAction, updateType, updatedPoint) => {
     switch (userAction) {
       case UserAction.UPDATE_POINT:
-        this.tripModel.updatePoint(updateType, updatedPoint);
+        await this.tripModel.updatePoint(updateType, updatedPoint);
         break;
       case UserAction.ADD_POINT:
         this.tripModel.addPoint(updateType, updatedPoint);

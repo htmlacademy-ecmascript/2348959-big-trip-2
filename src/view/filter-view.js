@@ -9,7 +9,8 @@ const createFilterItemTemplate = (filterItem, currentFilterType) => {
   return `
     <div class="trip-filters__filter">
       <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type}" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
-      <label class="trip-filters__filter-label" for="filter-${type}">${name} ${count > 0 ? `<span class="trip-filters__filter-count">${count}</span>` : ''}</label>
+      <!-- <label class="trip-filters__filter-label" for="filter-${type}">${name} ${count > 0 ? `<span class="trip-filters__filter-count">${count}</span>` : ''}</label> -->
+      <label class="trip-filters__filter-label" for="filter-${type}">${name}</label>
     </div>
   `;
 };
