@@ -17,13 +17,25 @@ export default class EventEditView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleRollupButtonClick = null;
   #handleDeleteClick = null;
+  #isNewPoint = false;
 
   static parsePointToState(point) {
-    return {...point};
+    return {
+      ...point,
+      isSaving: false,
+      isDeleting: false,
+      isDisabled: false,
+    };
   }
 
   static parseStateToPoint(state) {
-    return {...state};
+    const point = {...state};
+
+    delete point.isSaving;
+    delete point.isDeleting;
+    delete point.isDisabled;
+
+    return point;
   }
 
   #setDatepickers() {
@@ -90,7 +102,7 @@ export default class EventEditView extends AbstractStatefulView {
     super.removeElement();
   }
 
-  constructor(point, offers, destinations, onFormSubmit, onRollupButtonClick, onDeleteClick) {
+  constructor(point, offers, destinations, onFormSubmit, onRollupButtonClick, onDeleteClick, isNewPoint = false) {
     super();
 
     this.#offers = offers;
@@ -98,6 +110,7 @@ export default class EventEditView extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupButtonClick = onRollupButtonClick;
     this.#handleDeleteClick = onDeleteClick;
+    this.#isNewPoint = isNewPoint;
 
     this._setState(EventEditView.parsePointToState(point));
 
@@ -105,7 +118,7 @@ export default class EventEditView extends AbstractStatefulView {
   }
 
   get template() {
-    const {type, basePrice, dateFrom, dateTo, destination, offers} = this._state;
+    const {type, basePrice, dateFrom, dateTo, destination, offers, isSaving, isDeleting, isDisabled} = this._state;
     const currentDestination = this.#destinations.find((dest) => dest.id === destination) ?? this.#destinations[0];
     const {name, description, pictures} = currentDestination;
 
@@ -143,6 +156,9 @@ export default class EventEditView extends AbstractStatefulView {
       </section>
     ` : '';
 
+    const resetButtonText = this.#isNewPoint ? 'Cancel' : 'Delete';
+    const resetButtonLoadingText = this.#isNewPoint ? 'Cancel' : 'Deleting...';
+
     return `
       <li class="trip-events__item">
         <form class="event event--edit" action="#" method="post">
@@ -152,7 +168,7 @@ export default class EventEditView extends AbstractStatefulView {
                 <span class="visually-hidden">Choose event type</span>
                 <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
               </label>
-              <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+              <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
               <div class="event__type-list">
                 <fieldset class="event__type-group">
@@ -210,7 +226,7 @@ export default class EventEditView extends AbstractStatefulView {
               <label class="event__label  event__type-output" for="event-destination-1">
                 ${type}
               </label>
-              <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${name}" list="destination-list-1">
+              <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${name}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}>
               <datalist id="destination-list-1">
                 ${destinationOptionsTemplate}
               </datalist>
@@ -218,10 +234,10 @@ export default class EventEditView extends AbstractStatefulView {
 
             <div class="event__field-group  event__field-group--time">
               <label class="visually-hidden" for="event-start-time-1">From</label>
-              <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFromValue}">
+              <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFromValue}" ${isDisabled ? 'disabled' : ''}>
               &mdash;
               <label class="visually-hidden" for="event-end-time-1">To</label>
-              <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateToValue}">
+              <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateToValue}" ${isDisabled ? 'disabled' : ''}>
             </div>
 
             <div class="event__field-group  event__field-group--price">
@@ -229,12 +245,16 @@ export default class EventEditView extends AbstractStatefulView {
                 <span class="visually-hidden">Price</span>
                 &euro;
               </label>
-              <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
+              <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}" ${isDisabled ? 'disabled' : ''}>
             </div>
 
-            <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-            <button class="event__reset-btn" type="reset">Delete</button>
-            <button class="event__rollup-btn" type="button">
+            <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>
+              ${isSaving ? 'Saving...' : 'Save'}
+            </button>
+            <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>
+              ${isDeleting ? resetButtonLoadingText : resetButtonText}
+            </button>
+            <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
               <span class="visually-hidden">Open event</span>
             </button>
           </header>
@@ -255,14 +275,38 @@ export default class EventEditView extends AbstractStatefulView {
     `;
   }
 
+  setSaving() {
+    this.updateElement({
+      isSaving: true,
+      isDisabled: true,
+    });
+  }
+
+  setDeleting() {
+    this.updateElement({
+      isDeleting: true,
+      isDisabled: true,
+    });
+  }
+
+  resetState() {
+    this.updateElement({
+      isSaving: false,
+      isDeleting: false,
+      isDisabled: false,
+    });
+  }
+
   _restoreHandlers() {
     this.element
       .querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
 
-    this.element
-      .querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#rollupButtonClickHandler);
+    const rollupButton = this.element.querySelector('.event__rollup-btn');
+
+    if (rollupButton) {
+      rollupButton.addEventListener('click', this.#rollupButtonClickHandler);
+    }
 
     this.element
       .querySelector('.event__type-group')
