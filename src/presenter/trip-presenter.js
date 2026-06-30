@@ -7,7 +7,19 @@ import NoPointView from '../view/no-point-view.js';
 import {UserAction, UpdateType} from '../const.js';
 import {render, remove} from '../framework/render.js';
 import EventListView from '../view/event-list-view.js';
+import NewPointPresenter from './new-point-presenter.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import {sortPointDay, sortPointTime, sortPointPrice} from '../utils/sort.js';
+
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
+const uiBlocker = new UiBlocker({
+  lowerLimit: TimeLimit.LOWER_LIMIT,
+  upperLimit: TimeLimit.UPPER_LIMIT,
+});
 
 export default class TripPresenter {
   #points = [];
@@ -21,8 +33,10 @@ export default class TripPresenter {
   #noPointComponent = null;
   #loadingComponent = null;
   #tripEventsElement = null;
+  #newPointPresenter = null;
   #eventListComponent = null;
   #tripEventsListElement = null;
+  #newEventButtonElement = null;
 
   #clearPointList() {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
@@ -50,6 +64,25 @@ export default class TripPresenter {
     return filter[activeFilterType](points);
   }
 
+  #handleNewEventButtonClick = () => {
+    this.#handleModeChange();
+
+    if (this.#eventListComponent === null) {
+      remove(this.#noPointComponent);
+      this.#noPointComponent = null;
+
+      this.#renderSort();
+      this.#renderEventList();
+    }
+
+    this.#newPointPresenter.init();
+    this.#newEventButtonElement.disabled = true;
+  };
+
+  #handleNewPointFormClose = () => {
+    this.#newEventButtonElement.disabled = false;
+  };
+
   #handleModelEvent = (updateType, update) => {
     switch (updateType) {
       case UpdateType.PATCH:
@@ -67,6 +100,7 @@ export default class TripPresenter {
         break;
       case UpdateType.INIT:
         this.#isLoading = false;
+        this.#newEventButtonElement.disabled = false;
         this.#clearBoard();
         this.#renderBoard();
         break;
@@ -119,6 +153,14 @@ export default class TripPresenter {
     render(this.#eventListComponent, this.#tripEventsElement);
 
     this.#tripEventsListElement = this.#tripEventsElement.querySelector('.trip-events__list');
+
+    this.#newPointPresenter = new NewPointPresenter({
+      tripEventsListElement: this.#tripEventsListElement,
+      offers: this.#offers,
+      destinations: this.#destinations,
+      onDataChange: this.#handlePointChange,
+      onDestroy: this.#handleNewPointFormClose,
+    });
   }
 
   constructor({tripModel, filterModel}) {
@@ -131,6 +173,10 @@ export default class TripPresenter {
 
   init() {
     this.#tripEventsElement = document.querySelector('.trip-events');
+    this.#newEventButtonElement = document.querySelector('.trip-main__event-add-btn');
+
+    this.#newEventButtonElement.addEventListener('click', this.#handleNewEventButtonClick);
+
     this.#renderBoard();
   }
 
@@ -154,16 +200,22 @@ export default class TripPresenter {
   }
 
   #handlePointChange = async (userAction, updateType, updatedPoint) => {
-    switch (userAction) {
-      case UserAction.UPDATE_POINT:
-        await this.tripModel.updatePoint(updateType, updatedPoint);
-        break;
-      case UserAction.ADD_POINT:
-        this.tripModel.addPoint(updateType, updatedPoint);
-        break;
-      case UserAction.DELETE_POINT:
-        this.tripModel.deletePoint(updateType, updatedPoint);
-        break;
+    uiBlocker.block();
+
+    try {
+      switch (userAction) {
+        case UserAction.UPDATE_POINT:
+          await this.tripModel.updatePoint(updateType, updatedPoint);
+          break;
+        case UserAction.ADD_POINT:
+          await this.tripModel.addPoint(updateType, updatedPoint);
+          break;
+        case UserAction.DELETE_POINT:
+          await this.tripModel.deletePoint(updateType, updatedPoint);
+          break;
+      }
+    } finally {
+      uiBlocker.unblock();
     }
   };
 
