@@ -1,8 +1,9 @@
-import TripPresenter from './presenter/trip-presenter.js';
-import FilterPresenter from './presenter/filter-presenter.js';
 import TripModel from './model/trip-model.js';
 import FilterModel from './model/filter-model.js';
 import TripApiService from './trip-api-service.js';
+import TripPresenter from './presenter/trip-presenter.js';
+import FilterPresenter from './presenter/filter-presenter.js';
+import TripInfoPresenter from './presenter/trip-info-presenter.js';
 
 const AUTHORIZATION = 'Basic qwerty12345';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
@@ -25,6 +26,13 @@ const filterPresenter = new FilterPresenter({
   tripModel,
 });
 
+const tripInfoPresenter = new TripInfoPresenter({
+  tripMainElement: document.querySelector('.trip-main'),
+  tripModel,
+});
+
+tripInfoPresenter.init();
 filterPresenter.init();
 tripPresenter.init();
+
 tripModel.init();
