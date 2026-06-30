@@ -302,6 +302,12 @@ export default class EventEditView extends AbstractStatefulView {
       .querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
 
+    const offersElement = this.element.querySelector('.event__available-offers');
+
+    if (offersElement) {
+      offersElement.addEventListener('change', this.#offersChangeHandler);
+    }
+
     const rollupButton = this.element.querySelector('.event__rollup-btn');
 
     if (rollupButton) {
@@ -326,6 +332,20 @@ export default class EventEditView extends AbstractStatefulView {
 
     this.#setDatepickers();
   }
+
+  #offersChangeHandler = (evt) => {
+    const offerId = evt.target.id
+      .replace('event-offer-', '')
+      .replace('-1', '');
+
+    const offers = evt.target.checked
+      ? [...this._state.offers, offerId]
+      : this._state.offers.filter((id) => id !== offerId);
+
+    this.updateElement({
+      offers,
+    });
+  };
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
