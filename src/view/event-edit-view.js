@@ -91,8 +91,20 @@ export default class EventEditView extends AbstractStatefulView {
       <img class="event__photo" src="${escapeHtml(picture.src)}" alt="${escapeHtml(picture.description)}">
     `).join('');
 
-    const dateFromValue = humanizeEditEventDate(dateFrom);
-    const dateToValue = humanizeEditEventDate(dateTo);
+    const destinationSectionTemplate = destination ? `
+      <section class="event__section  event__section--destination">
+        <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+        <p class="event__destination-description">${escapedDescription}</p>
+        <div class="event__photos-container">
+          <div class="event__photos-tape">
+            ${picturesTemplate}
+          </div>
+        </div>
+      </section>
+    ` : '';
+
+    const dateFromValue = dateFrom ? humanizeEditEventDate(dateFrom) : '';
+    const dateToValue = dateTo ? humanizeEditEventDate(dateTo) : '';
 
     const destinationOptionsTemplate = this.#destinations.map((dest) => `
       <option value="${escapeHtml(dest.name)}"></option>
@@ -216,15 +228,7 @@ export default class EventEditView extends AbstractStatefulView {
           </header>
           <section class="event__details">
             ${offersSectionTemplate}
-            <section class="event__section  event__section--destination">
-              <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-              <p class="event__destination-description">${escapedDescription}</p>
-              <div class="event__photos-container">
-                <div class="event__photos-tape">
-                  ${picturesTemplate}
-                </div>
-              </div>
-            </section>
+            ${destinationSectionTemplate}
           </section>
         </form>
       </li>
@@ -301,7 +305,7 @@ export default class EventEditView extends AbstractStatefulView {
       {
         enableTime: true,
         dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateFrom,
+        defaultDate: this._state.dateFrom || null,
         // eslint-disable-next-line camelcase
         time_24hr: true,
         onChange: this.#dateFromChangeHandler,
@@ -313,7 +317,7 @@ export default class EventEditView extends AbstractStatefulView {
       {
         enableTime: true,
         dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateTo,
+        defaultDate: this._state.dateTo || null,
         // eslint-disable-next-line camelcase
         time_24hr: true,
         onChange: this.#dateToChangeHandler,

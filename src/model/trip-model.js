@@ -6,6 +6,7 @@ export default class TripModel extends Observable {
   #points = [];
   #destinations = [];
   #offers = [];
+  #isFailed = false;
 
   constructor({tripApiService}) {
     super();
@@ -25,6 +26,10 @@ export default class TripModel extends Observable {
     return this.#offers;
   }
 
+  get isFailed() {
+    return this.#isFailed;
+  }
+
   async init() {
     try {
       const [points, destinations, offers] = await Promise.all([
@@ -36,18 +41,15 @@ export default class TripModel extends Observable {
       this.#points = points;
       this.#destinations = destinations;
       this.#offers = offers;
+      this.#isFailed = false;
     } catch (err) {
       this.#points = [];
       this.#destinations = [];
       this.#offers = [];
+      this.#isFailed = true;
     }
 
     this._notify(UpdateType.INIT);
-  }
-
-  setPoints(updateType, newPoints) {
-    this.#points = newPoints;
-    this._notify(updateType);
   }
 
   async updatePoint(updateType, updatedPoint) {
