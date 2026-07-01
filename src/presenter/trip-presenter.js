@@ -1,14 +1,13 @@
-import {SortType} from '../const.js';
 import {filter} from '../utils/filter.js';
 import SortView from '../view/sort-view.js';
 import PointPresenter from './point-presenter.js';
 import LoadingView from '../view/loading-view.js';
 import NoPointView from '../view/no-point-view.js';
-import {UserAction, UpdateType} from '../const.js';
 import {render, remove} from '../framework/render.js';
 import EventListView from '../view/event-list-view.js';
 import NewPointPresenter from './new-point-presenter.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
+import {FilterType, SortType, UserAction, UpdateType} from '../const.js';
 import {sortPointDay, sortPointTime, sortPointPrice} from '../utils/sort.js';
 
 const TimeLimit = {
@@ -67,6 +66,18 @@ export default class TripPresenter {
   }
 
   #handleNewEventButtonClick = () => {
+    const isFilterResetNeeded = this.filterModel.filter !== FilterType.EVERYTHING;
+    const isSortResetNeeded = this.#currentSortType !== SortType.DAY;
+
+    this.#currentSortType = SortType.DAY;
+
+    if (isFilterResetNeeded) {
+      this.filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    } else if (isSortResetNeeded) {
+      this.#clearBoard();
+      this.#renderBoard();
+    }
+
     this.#handleModeChange();
 
     if (this.#eventListComponent === null) {
@@ -82,7 +93,7 @@ export default class TripPresenter {
   };
 
   #handleNewPointFormClose = () => {
-    this.#newEventButtonElement.disabled = false;
+    this.#newEventButtonElement.disabled = this.tripModel.isFailed;
   };
 
   #handleModelEvent = (updateType, update) => {
@@ -112,6 +123,12 @@ export default class TripPresenter {
   #renderBoard() {
     if (this.#isLoading) {
       this.#renderLoading();
+      return;
+    }
+
+    if (this.tripModel.isFailed) {
+      this.#noPointComponent = new NoPointView('SERVER_ERROR');
+      render(this.#noPointComponent, this.#tripEventsElement);
       return;
     }
 

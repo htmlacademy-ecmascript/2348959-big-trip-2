@@ -5,8 +5,8 @@ import {render, remove, RenderPosition} from '../framework/render.js';
 const BLANK_POINT = {
   type: 'flight',
   destination: '',
-  dateFrom: new Date().toISOString(),
-  dateTo: new Date().toISOString(),
+  dateFrom: '',
+  dateTo: '',
   basePrice: 0,
   offers: [],
   isFavorite: false,
@@ -33,10 +33,7 @@ export default class NewPointPresenter {
       return;
     }
 
-    const point = {
-      ...BLANK_POINT,
-      destination: this.#destinations[0]?.id ?? '',
-    };
+    const point = {...BLANK_POINT};
 
     this.#eventEditComponent = new EventEditView(
       point,
