@@ -77,7 +77,7 @@ export default class EventEditView extends AbstractStatefulView {
 
       return `
         <div class="event__offer-selector">
-          <input class="event__offer-checkbox  visually-hidden" id="event-offer-${escapedId}-1" type="checkbox" name="event-offer-${escapedId}" data-offer-id="${escapedId}" ${offers.includes(offer.id) ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+          \<input class="event__offer-checkbox  visually-hidden" id="event-offer-${escapedId}-1" type="checkbox" name="event-offer-${escapedId}" data-offer-id="${escapedId}" ${offers.includes(offer.id) ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__offer-label" for="event-offer-${escapedId}-1">
             <span class="event__offer-title">${escapedTitle}</span>
             &plus;&euro;&nbsp;
