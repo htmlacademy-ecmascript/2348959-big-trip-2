@@ -1,11 +1,11 @@
-import {humanizeEventDate, humanizeEventTime, getEventDuration} from '../utils/point.js';
+import {escapeHtml} from '../utils/common.js';
 import AbstractView from '../framework/view/abstract-view.js';
+import {humanizeEventDate, humanizeEventTime, getEventDuration} from '../utils/point.js';
 
 export default class EventView extends AbstractView {
   #point = null;
   #destination = null;
   #offers = [];
-  #handleRollupClick = null;
   #handleRollupButtonClick = null;
   #handleFavoriteClick = null;
 
@@ -30,12 +30,15 @@ export default class EventView extends AbstractView {
   get template() {
     const {type, basePrice, isFavorite, dateFrom, dateTo} = this.#point;
     const {name} = this.#destination;
+    const escapedType = escapeHtml(type);
+    const escapedName = escapeHtml(name);
+    const escapedBasePrice = escapeHtml(basePrice);
 
     const offersTemplate = this.#offers.map((offer) => `
       <li class="event__offer">
-        <span class="event__offer-title">${offer.title}</span>
+        <span class="event__offer-title">${escapeHtml(offer.title)}</span>
         &plus;&euro;&nbsp;
-        <span class="event__offer-price">${offer.price}</span>
+        <span class="event__offer-price">${escapeHtml(offer.price)}</span>
       </li>
     `).join('');
     return `
@@ -43,9 +46,9 @@ export default class EventView extends AbstractView {
         <div class="event">
           <time class="event__date" datetime="${dateFrom}">${humanizeEventDate(dateFrom)}</time>
           <div class="event__type">
-            <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
+            <img class="event__type-icon" width="42" height="42" src="img/icons/${escapedType}.png" alt="Event type icon">
           </div>
-          <h3 class="event__title">${type} in ${name}</h3>
+          <h3 class="event__title">${escapedType} in ${escapedName}</h3>
           <div class="event__schedule">
             <p class="event__time">
               <time class="event__start-time" datetime="${dateFrom}">${humanizeEventTime(dateFrom)}</time>
@@ -55,7 +58,7 @@ export default class EventView extends AbstractView {
             <p class="event__duration">${getEventDuration(dateFrom, dateTo)}</p>
           </div>
           <p class="event__price">
-            &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
+            &euro;&nbsp;<span class="event__price-value">${escapedBasePrice}</span>
           </p>
           <h4 class="visually-hidden">Offers:</h4>
           <ul class="event__selected-offers">

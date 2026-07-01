@@ -45,6 +45,7 @@ export default class TripPresenter {
 
   #clearBoard() {
     this.#clearPointList();
+    this.#newPointPresenter?.destroy();
 
     remove(this.#sortComponent);
     remove(this.#eventListComponent);
@@ -55,6 +56,7 @@ export default class TripPresenter {
     this.#eventListComponent = null;
     this.#noPointComponent = null;
     this.#loadingComponent = null;
+    this.#newPointPresenter = null;
   }
 
   #getPoints() {
@@ -91,7 +93,7 @@ export default class TripPresenter {
           .init(update);
         break;
       case UpdateType.MINOR:
-        this.#clearPointList();
+        this.#clearBoard();
         this.#renderBoard();
         break;
       case UpdateType.MAJOR:
