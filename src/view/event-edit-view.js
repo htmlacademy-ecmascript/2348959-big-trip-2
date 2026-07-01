@@ -349,15 +349,6 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
-    const offers = evt.target.checked
-      ? [...this._state.offers, offerId]
-      : this._state.offers.filter((id) => id !== offerId);
-
-    this.updateElement({
-      offers,
-    });
-  };
-
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormSubmit(EventEditView.parseStateToPoint(this._state));
