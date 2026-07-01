@@ -1,16 +1,19 @@
-import AbstractView from '../framework/view/abstract-view.js';
 import {FilterType} from '../const.js';
+import {escapeHtml} from '../utils/common.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createFilterItemTemplate = (filterItem, currentFilterType) => {
   const {type, name, count} = filterItem;
   const isChecked = type === currentFilterType;
   const isDisabled = count === 0 && type !== FilterType.EVERYTHING;
 
+  const escapedType = escapeHtml(type);
+  const escapedName = escapeHtml(name);
+
   return `
     <div class="trip-filters__filter">
-      <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type}" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
-      <!-- <label class="trip-filters__filter-label" for="filter-${type}">${name} ${count > 0 ? `<span class="trip-filters__filter-count">${count}</span>` : ''}</label> -->
-      <label class="trip-filters__filter-label" for="filter-${type}">${name}</label>
+      <input id="filter-${escapedType}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${escapedType}" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+      <label class="trip-filters__filter-label" for="filter-${escapedType}">${escapedName}</label>
     </div>
   `;
 };
