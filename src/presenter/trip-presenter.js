@@ -113,7 +113,7 @@ export default class TripPresenter {
         break;
       case UpdateType.INIT:
         this.#isLoading = false;
-        this.#newEventButtonElement.disabled = false;
+        this.#newEventButtonElement.disabled = this.tripModel.isFailed;
         this.#clearBoard();
         this.#renderBoard();
         break;
