@@ -21,7 +21,7 @@ const getTripTitle = (points, destinations) => {
     return destinationNames.join(' — ');
   }
 
-  return `${destinationNames.at(0)} — ... — ${destinationNames.at(-1)}`;
+  return `${destinationNames[0]} — ... — ${destinationNames[destinationNames.length - 1]}`;
 };
 
 const getTripDates = (points) => {
@@ -30,8 +30,8 @@ const getTripDates = (points) => {
   }
 
   const sortedPoints = [...points].sort(sortPointDay);
-  const firstPoint = sortedPoints.at(0);
-  const lastPoint = sortedPoints.at(-1);
+  const firstPoint = sortedPoints[0];
+  const lastPoint = sortedPoints[sortedPoints.length - 1];
 
   return `${dayjs(firstPoint.dateFrom).format(TRIP_DATE_FORMAT)} — ${dayjs(lastPoint.dateTo).format(TRIP_DATE_FORMAT)}`;
 };
